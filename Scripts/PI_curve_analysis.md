@@ -3,6 +3,19 @@ PI Curve Analysis
 Micaela Chapuis
 2026-09-04
 
+# Respo Code for PI Curve Analysis
+
+### Created by: Nyssa Silbiger, updated by Maya Powell
+
+This code takes the output from the PI_curve_processing code, as well as
+information about the PI run and tile/chamber measurements, and:
+
+- calculates rates  
+- blank-corrects them  
+- normalizes them to surface area and dry weight  
+- plots PI curve  
+- calculates Ik
+
 ## Load Libraries
 
 ``` r

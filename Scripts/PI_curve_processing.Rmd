@@ -5,9 +5,9 @@ date: "2026-09-04"
 output: html_document
 ---
 ###### Respo Code for PI Curve Processing 
-### Created by: Nyssa Silbiger
+### Created by: Nyssa Silbiger, updated by Maya Powell
 
-This code is run once per PI Curve run. 
+This code is run once per PI Curve run to create a file with respo outputs. 
 
 ## Install Packages (if not already installed)
 ```{r message = FALSE}
