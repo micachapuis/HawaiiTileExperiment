@@ -249,7 +249,7 @@ for (i in unique(rates_normalized$treatment)) {
   
   # make plot
    basic_PI_plot <- data %>%
-    ggplot(aes(x = average_PAR, y = umol_cm2_hr, color = treatment_colors[i], group = tile_ID))+
+    ggplot(aes(x = average_PAR, y = umol_cm2_hr, color = treatment_colors[i]))+
     geom_point(shape = 21)+
     #geom_line()+
     geom_ribbon(data = ci_df, aes(x = average_PAR, ymin = lwr, ymax = upr), 
@@ -276,9 +276,6 @@ for (i in unique(rates_normalized$treatment)) {
 ggarrange(plotlist = plot_list) #, ncol = 5, nrow = 2)
 ```
 
-    ## Warning: Multiple drawing groups in `geom_function()`
-    ## ℹ Did you use the correct group, colour, or fill aesthetics?
-
 ![](PI_curve_analysis_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
 
 ``` r
@@ -290,7 +287,7 @@ print(nls_model_coef_all)
 ```
 
     ##   Pmax_gross         AQY        Rd     theta       Ik       Ic Pmax_net
-    ## 1   1.966212 0.008190344 0.4171772 0.9332747 240.0646 50.93525 1.549035
+    ## 1   1.966212 0.008190345 0.4171772 0.9332747 240.0646 50.93525 1.549035
     ##      treatment
     ## 1 white_copper
 

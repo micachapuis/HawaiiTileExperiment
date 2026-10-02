@@ -6,6 +6,7 @@ output: github_document
 ---
 
 ## Load Libraries
+
 ```{r message = FALSE}
 library(segmented)
 library(plotrix)
@@ -29,6 +30,7 @@ library(investr)
 ```
 
 ## Load Data
+
 ```{r message = FALSE}
 respo_data <-read_csv(here("Data", "Respo", "Pilot", "pilot_PI_curves.csv"))
 tile_measurements <- read_csv(here("Data","Respo","tile_measurements.csv"))
@@ -36,11 +38,13 @@ respo_output <- read_csv(here("Data", "Respo", "Pilot", "respo_PI_output.csv"))
 ```
 
 ## Join respo metadata and tile measurements
+
 ```{r}
 sample_data <- left_join(respo_data, tile_measurements)
 ```
 
 ### Calculate Respiration Rate
+
 ```{r}
 respo_rates <- respo_output %>%
   left_join(sample_data) %>% # Join the raw respo calculations with the metadata
@@ -53,6 +57,7 @@ respo_rates <- respo_output %>%
 ```
 
 ### Normalize Respiration Rates to Blanks
+
 ```{r message = FALSE}
 rates_normalized <- respo_rates %>% 
   filter(blank == 1) %>% # grab the blanks
@@ -84,12 +89,13 @@ rates_normalized <- respo_rates %>%
 ```
 
 ## Export df
+
 ```{r}
 write_csv(rates_normalized, here("Data","Respo", "Pilot", "PI_rates_normalized.csv"))  
 ```
 
-
 ## Making a dataframe for blank data for future use in plots
+
 ```{r message = FALSE}
 blanks_only <- respo_rates %>% 
   filter(blank == 1) %>% # grab the blanks
@@ -98,6 +104,7 @@ blanks_only <- respo_rates %>%
 ```
 
 ## Plot the blanks across treatments to make sure everything looks good
+
 ```{r}
 blanks_only %>%
   ggplot(aes(x = average_PAR, blank_rate)) +
@@ -107,8 +114,10 @@ blanks_only %>%
 # my blanks look like that because I have a lot of water, but the range/spread on the Y axis is very small (0.003)
 ```
 
-## Basic plot of rates versus light before making real PI curve 
+## Basic plot of rates versus light before making real PI curve
+
 Normalized to surface area
+
 ```{r}
 rates_normalized %>%
   ggplot(aes(x = average_PAR, y = umol_cm2_hr, color = tile_ID))+
@@ -121,7 +130,9 @@ rates_normalized %>%
 
 # overall P rates similar across tiles
 ```
+
 Normalized to dry weights
+
 ```{r}
 rates_normalized %>%
   ggplot(aes(x = average_PAR, y = umol_g_hr, color = tile_ID))+
@@ -135,7 +146,8 @@ rates_normalized %>%
 # stick to under 500, maybe 450
 ```
 
-### Run NLS model for PI curve and extract Ik for each tile 
+### Run NLS model for PI curve and extract Ik for each tile
+
 ##### Nonlinear Least Squares regression of a non-rectangular hyperbola (Marshall & Biscoe, 1980)
 
 ```{r}
@@ -144,7 +156,6 @@ treatment_colors <- c("black" = "#698B69",
                       "white" = "#96CDCD",
                       "white_copper" = "#CD5B45")
 ```
-
 
 ```{r}
 #define nrh model & function to make sure all variables are not saved from previous runs
@@ -223,7 +234,7 @@ for (i in unique(rates_normalized$treatment)) {
   
   # make plot
    basic_PI_plot <- data %>%
-    ggplot(aes(x = average_PAR, y = umol_cm2_hr, color = treatment_colors[i], group = tile_ID))+
+    ggplot(aes(x = average_PAR, y = umol_cm2_hr, color = treatment_colors[i]))+
     geom_point(shape = 21)+
     #geom_line()+
     geom_ribbon(data = ci_df, aes(x = average_PAR, ymin = lwr, ymax = upr), 
@@ -251,7 +262,6 @@ ggarrange(plotlist = plot_list) #, ncol = 5, nrow = 2)
 #ggsave(here("Output/PI/ikonik_publishable_plot.pdf"), all_nls_PI_plots, width = 20, height = 8)
 ```
 
-
 ```{r}
 print(nls_model_coef_all)
 ```
@@ -260,10 +270,10 @@ print(nls_model_coef_all)
 #write.csv(nls_model_coef_all, here("Output/PI/nls_model_coef_all.csv"))
 ```
 
-
-
 ### Old/Outdated Code
+
 ## Plot curves
+
 ```{r}
 # aggregating all tiles
 ## tile_respo <- rates_normalized %>% filter(     ) # in future might want to filter by treatment (black/white)
@@ -271,7 +281,6 @@ print(nls_model_coef_all)
 #tile_mean <- aggregate(umol_g_hr ~ average_PAR, data = rates_normalized, FUN=mean)
 #tile_se <- aggregate(umol_g_hr ~ average_PAR, data = rates_normalized, FUN=std.error)
 ```
-
 
 Tile Data
 
@@ -288,6 +297,7 @@ Tile Data
 ```
 
 ### Fit a model using a Nonlinear Least Squares regression of a non-rectangular hyperbola (Marshall & Biscoe, 1980)
+
 ```{r}
 #curve_nlslrc = nls(rates ~ (1/(2*theta)) * (AQY*PAR+Am-sqrt((AQY*PAR+Am)^2-4*AQY*theta*Am*PAR)) - Rd,
 #                   start = list(Am = (max(rates) - min(rates)),
@@ -297,7 +307,6 @@ Tile Data
 #fit <- summary(curve_nlslrc) #summary of model fit
 #fit
 ```
-
 
 ```{r}
 # plot needs to be in the same chunk to be able to add the curve to it
@@ -314,6 +323,7 @@ Tile Data
 ```
 
 ### Extract values
+
 ```{r}
 #Amax (max gross photosytnthetic rate)
 #Pmax.gross <- fit$parameters[1]
@@ -335,6 +345,7 @@ Tile Data
 ```
 
 ## Output parameters into a table
+
 ```{r}
 #pilot_PI_output <- rbind(Pmax.gross, Pmax.net, -Rd, AQY, Ik, Ic)
 #row.names(pilot_PI_output) <- c("Pg.max","Pn.max","Rdark","alpha", "Ik", "Ic")
