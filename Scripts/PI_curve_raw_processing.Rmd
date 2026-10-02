@@ -1,10 +1,10 @@
 ---
-title: "PI_curve_processing"
+title: "PI Curve Raw Data Processing"
 author: "Micaela Chapuis"
 date: "2026-09-04"
 output: html_document
 ---
-###### Respo Code for PI Curve Processing 
+## Respo Code for Processing Raw PI Curve Data
 ### Created by: Nyssa Silbiger, updated by Maya Powell
 
 This code is run once per PI Curve run to create a file with respo outputs. 
@@ -62,16 +62,11 @@ Basename above removes the subdirectory name from the file, storing the full nam
 ```
 
 ### Load in Data
-Loading in respo metadata (file with times, light levels, etc) and tile measurements (volumes, weights, etc)
+Loading in respo metadata (file with times, light levels, etc)
 ```{r message = FALSE}
-respo_data <-read_csv(here("Data", "Respo", "Pilot", "pilot_PI_curves.csv"))
-tile_measurements <- read_csv(here("Data","Respo","tile_measurements.csv"))
+sample_data <-read_csv(here("Data", "Respo", "Pilot", "pilot_PI_curves.csv"))
 ```
 
-## Join the data together
-```{r}
-sample_data <- left_join(respo_data, tile_measurements)
-```
 
 ## Make sure times are consistent
 Make start and stop times real times, so that we can join the respo output and sample_data data frames
@@ -79,9 +74,9 @@ Make start and stop times real times, so that we can join the respo output and s
 sample_data <- sample_data %>% 
   unite(respo_date,start_time,col="start_time",remove=F, sep=" ") %>% # makes datetime column for respo start
   unite(respo_date,end_time,col="end_time",remove=F, sep=" ") %>% # makes datetime column for respo end
-  mutate(start_time = ymd_hms(start_time)) %>% 
-  mutate(end_time = ymd_hms(end_time)) %>% 
-  mutate(respo_date = ymd(respo_date))
+  mutate(start_time = ymd_hms(start_time),
+         end_time = ymd_hms(end_time),
+         respo_date = ymd(respo_date))
 ```
 
 ## Generate an empty dataframe
@@ -90,7 +85,7 @@ Data is in umol/L/sec
 ```{r}
 n_light_levels <- 10 # number of unique light levels
 
-respo_output <- tibble(.rows =length(filenames_final)*n_light_levels,
+respo_output <- tibble(.rows =length(filenames)*n_light_levels,
                         sample_ID = NA,
                         intercept = NA,
                         umol_liter_sec = NA,
@@ -101,10 +96,10 @@ respo_output <- tibble(.rows =length(filenames_final)*n_light_levels,
 
 ### For Loop
 ```{r}
-for(i in 1:length(filenames_final)) {
-  find_row <- as.numeric(which(sample_data$measurement_name == filenames_final[i])) # Find the row in sample_data where the measurement_name (file name) matches each name from filenames list
+for(i in 1:length(filenames)) {
+  find_row <- as.numeric(which(sample_data$measurement_name == filenames[i])) # Find the row in sample_data where the measurement_name (file name) matches each name from filenames list
  
-  respo_data1 <- read_csv(skip=1,file.path(path_o2, paste0(filenames_full[i]))) %>% # reads in each file in list
+  respo_data1 <- read_csv(skip=1,file.path(path_o2, paste0(filenames[i]))) %>% # reads in each file in list
                  select(Date, Time, Value, Temp) %>% # keep only what we need from the oxygen files: Time stamp, Raw O2 value, in situ temp
                  unite(Date, Time, col="Time", remove=T, sep = " ") %>% # make datetime column
                  drop_na() %>% 
@@ -130,7 +125,7 @@ for(i in 1:length(filenames_final)) {
   combined_oxy <- bind_rows(oxy_subsets)
      
 # Get the filename without the _O2.csv
-  rename <- sub("_O2.csv","", filenames_final[i])
+  rename <- sub("_O2.csv","", filenames[i])
   
 # Plot and export the thinned data
   p1 <- ggplot(combined_oxy, aes(x = t_sec, y = Value)) +
