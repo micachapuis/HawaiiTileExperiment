@@ -1,8 +1,4 @@
 deployment_type,respo_date,sample_ID,tile_ID,site,measurement_name,run_block,channel_number,blank,light_dark,light_level,tile_in_water,chamber_sealed,chamber_salinity,start_time,end_time,TA_source_time,TA_sample_time,TA_sample_ID,notes
-pilot,2026/08/26,20260826_005A_TA,005A,Turtle Bay,20260826_TA_005A_O2.csv,run0,1,0,light,636.5,15:07,15:22,35.7,16:02,17:02,15:21,17:09,20260826_tb_005A,
-pilot,2026/08/26,20260826_010A_TA,010A,Turtle Bay,20260826_TA_010A_O2.csv,run0,2,0,light,636.5,15:26,15:46,35.7,16:02,17:02,15:21,17:10,20260826_tb_010A,re-measured volume after calcification run
-pilot,2026/08/26,20260826_BLANK1_TA,BLANK1,Turtle Bay,20260826_TA_BLANK1_O2.csv,run0,3,1,light,636.5,15:05,15:10,35.7,16:02,17:02,15:21,17:16,20260826_tb_BLANK1,re-measured volume after calcification run
-pilot,2026/08/26,20260826_002A_TA,002A,Turtle Bay,20260826_TA_002A_O2.csv,run0,4,0,light,636.5,15:12,16:02,35.7,16:02,17:02,15:21,17:17,20260826_tb_002A,
 pilot,2026/09/09,20260909_003B_RUN1,003B,Turtle Bay,20260909_003B_RUN1_O2.csv,run1,1,0,dark,0,10:18,10:26,33.5,11:37,12:07,NA,NA,NA,
 pilot,2026/09/09,20260909_BLANK_B_RUN1,BLANK_B_RUN1,Turtle Bay,20260909_BLANK_B_RUN1_O2.csv,run1,2,1,dark,0,10:10,10:18,33.5,11:37,12:07,NA,NA,NA,
 pilot,2026/09/09,20260909_016A_RUN1,016A,Turtle Bay,20260909_016A_RUN1_O2.csv,run1,3,0,dark,0,10:22,10:33,33.5,11:37,12:07,NA,NA,NA,
