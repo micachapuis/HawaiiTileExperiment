@@ -1,0 +1,210 @@
+---
+title: "PI_curve_processing"
+author: "Micaela Chapuis"
+date: "2026-09-04"
+output: html_document
+---
+###### Respo Code for PI Curve Processing 
+### Created by: Nyssa Silbiger
+
+This code is run once per PI Curve run. 
+
+## Install Packages (if not already installed)
+```{r message = FALSE}
+if ("segmented" %in% rownames(installed.packages()) == 'FALSE') install.packages('segmented')
+if ("plotrix" %in% rownames(installed.packages()) == 'FALSE') install.packages('plotrix')
+if ("gridExtra" %in% rownames(installed.packages()) == 'FALSE') install.packages('gridExtra')
+if ("LoLinR" %in% rownames(installed.packages()) == 'FALSE') devtools::install_github('colin-olito/LoLinR')
+if ("chron" %in% rownames(installed.packages()) == 'FALSE') install.packages('chron')
+if ("tidyverse" %in% rownames(installed.packages()) == 'FALSE') install.packages('tidyverse')
+if ("here" %in% rownames(installed.packages()) == 'FALSE') install.packages('here')
+if ("patchwork" %in% rownames(installed.packages()) == 'FALSE') install.packages('patchwork')
+if ("PNWColors" %in% rownames(installed.packages()) == 'FALSE') install.packages('PNWColors')
+```
+
+## Load Libraries
+```{r message = FALSE}
+library(segmented)
+library(plotrix)
+library(gridExtra)
+library(LoLinR)
+library(lubridate)
+library(chron)
+library(patchwork)
+library(tidyverse)
+library(here)
+library(PNWColors)
+library(ggrepel)
+library(reshape2)
+library(viridis)
+library(car)
+library(future)
+library(furrr)
+```
+
+### Set file path 
+Set file path to raw oxygen datasheets
+```{r}
+path_o2 <- here("Data","Respo","Pilot", "PI Curves") # the location of all respirometry files
+```
+
+Bring in all of the individual files
+
+```{r}
+filenames <- basename(list.files(path = path_o2, pattern = "csv$", recursive = FALSE)) # list all csv file names in the folder 
+# recursive = FALSE means it will not list file in subfolders, change to TRUE if that is needed
+```
+
+If going into subfolders:
+Basename above removes the subdirectory name from the file, storing the full name here
+```{r}
+#filenames_full <- list.files(path = path_o2, pattern = "csv$", recursive = TRUE) 
+```
+
+### Load in Data
+Loading in respo metadata (file with times, light levels, etc) and tile measurements (volumes, weights, etc)
+```{r message = FALSE}
+respo_data <-read_csv(here("Data", "Respo", "Pilot", "pilot_PI_curves.csv"))
+tile_measurements <- read_csv(here("Data","Respo","tile_measurements.csv"))
+```
+
+## Join the data together
+```{r}
+sample_data <- left_join(respo_data, tile_measurements)
+```
+
+## Make sure times are consistent
+Make start and stop times real times, so that we can join the respo output and sample_data data frames
+```{r}
+sample_data <- sample_data %>% 
+  unite(respo_date,start_time,col="start_time",remove=F, sep=" ") %>% # makes datetime column for respo start
+  unite(respo_date,end_time,col="end_time",remove=F, sep=" ") %>% # makes datetime column for respo end
+  mutate(start_time = ymd_hms(start_time)) %>% 
+  mutate(end_time = ymd_hms(end_time)) %>% 
+  mutate(respo_date = ymd(respo_date))
+```
+
+## Generate an empty dataframe
+Data is in umol/L/sec
+
+```{r}
+n_light_levels <- 10 # number of unique light levels
+
+respo_output <- tibble(.rows =length(filenames_final)*n_light_levels,
+                        sample_ID = NA,
+                        intercept = NA,
+                        umol_liter_sec = NA,
+                        temp_C = NA,
+                        light_level = NA,
+                        average_PAR = NA)
+```
+
+### For Loop
+```{r}
+for(i in 1:length(filenames_final)) {
+  find_row <- as.numeric(which(sample_data$measurement_name == filenames_final[i])) # Find the row in sample_data where the measurement_name (file name) matches each name from filenames list
+ 
+  respo_data1 <- read_csv(skip=1,file.path(path_o2, paste0(filenames_full[i]))) %>% # reads in each file in list
+                 select(Date, Time, Value, Temp) %>% # keep only what we need from the oxygen files: Time stamp, Raw O2 value, in situ temp
+                 unite(Date, Time, col="Time", remove=T, sep = " ") %>% # make datetime column
+                 drop_na() %>% 
+                 mutate(Time = mdy_hms(Time)) # convert time
+
+# Now cut the data by start and stop times from respo metadata
+# Use start time of each light step from the metadata to separate data by light stop
+  
+  oxy_subsets <- sample_data[find_row,] %>%
+      pmap(function(light_level, start_time, end_time, ...) {
+      data <- respo_data1  %>%
+              filter(Time >= start_time & Time <= end_time) %>%
+              arrange(Time) %>%
+              mutate(t_sec = as.numeric(difftime(Time, first(Time), units = "secs"))) %>% #keep everything in seconds
+              mutate(light_level = light_level) %>%
+              filter(t_sec > 180) %>%              # drop first 3 min (180 s)
+              filter(row_number() %% 5 == 0)      # keep every 5th row (if we need to thin the data)
+
+    }) 
+  
+  
+# Combine all oxy subsets (data subsets per light level) into one long dataframe with ID labels
+  combined_oxy <- bind_rows(oxy_subsets)
+     
+# Get the filename without the _O2.csv
+  rename <- sub("_O2.csv","", filenames_final[i])
+  
+# Plot and export the thinned data
+  p1 <- ggplot(combined_oxy, aes(x = t_sec, y = Value)) +
+    geom_point(color = "dodgerblue") +
+    labs(
+      x = 'Time (seconds)',
+      y = expression(paste(' O'[2],' (',mu,'mol/L)')),
+      title = "original"
+    ) +
+    facet_wrap(~light_level, scales = "free_y")
+  
+  
+##Olito et al. 2017: It is running a bootstrapping technique and calculating the rate based on density
+#option to add multiple outputs method= c("z", "e "pc")
+  
+# LoLinR = Local Linear Regression in R --> will run multiple linear regressions and suggest the best possible slope
+  
+# Define function for fitting LoLinR regressions to be applied to all intervals for all samples
+  fit_reg <- function(data) {
+    rankLocReg(xall = data$t_sec, yall = data$Value, 
+               alpha = 0.2, method = "pc", verbose = FALSE)
+  }
+  
+   
+# Setup for parallel processing
+  future::plan(multisession)
+  
+# Map LoLinR function onto all intervals of each sample's thinned dataset
+  df <- combined_oxy %>%
+    select(t_sec, Value, light_level, Temp) %>%
+    mutate(t_sec = as.numeric(t_sec)) %>%
+    nest_by(light_level) %>%
+    ungroup() %>%
+    mutate(regs = furrr::future_map(data, fit_reg), # run the LoLinR fit in parallel
+           temp_C = map_dbl(map(data, "Temp"), mean), # get the mean temperature
+           RegStats = map(regs, function(x){ # extract the intercept and slope for the parameters
+                          x$allRegs %>%
+                          slice(1) %>%
+                          select(intercept = b0,
+                                 umol_liter_sec = b1)
+           }) )
+
+    
+# Plot regression diagnostics and save them in Output folder
+ 
+  for(j in 1:length(df$light_level)){
+   pdf(paste0(here("Output","Pilot", "PI Curves"),"/",rename,"_",j,".pdf" ))
+    plot(df$regs[[j]])
+    dev.off() 
+  }
+ 
+  
+  df <- df %>%
+    select(light_level, temp_C, RegStats) %>%
+    unnest(RegStats) %>%
+    mutate(sample_ID = rename) %>%
+    left_join(sample_data[find_row,] %>%
+              select(sample_ID, light_level, average_PAR)) # make sure the important metadata is in the final DF
+    
+
+# Fiill in all the O2 consumption and rate data
+  
+  respo_output[find_row,"temp_C"] <- df$temp_C
+  respo_output[find_row,"sample_ID"] <- df$sample_ID
+  respo_output[find_row,"intercept"] <- df$intercept
+  respo_output[find_row,"umol_liter_sec"] <- df$umol_liter_sec
+  respo_output[find_row,"light_level"] <- df$light_level
+  respo_output[find_row,"average_PAR"] <- df$average_PAR
+
+ }  
+```
+
+### Export Data
+```{r}
+write_csv(respo_output, here("Data", "Respo", "Pilot", "respo_PI_output.csv"))
+```
+
