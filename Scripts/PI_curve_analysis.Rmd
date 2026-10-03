@@ -19,25 +19,11 @@ This code takes the output from the PI_curve_raw_processing code, as well as inf
 ## Load Libraries
 
 ```{r message = FALSE}
-library(segmented)
-library(plotrix)
-library(gridExtra)
-library(LoLinR)
-library(lubridate)
-library(chron)
-library(patchwork)
 library(tidyverse)
 library(here)
-library(PNWColors)
-library(ggrepel)
-library(reshape2)
-library(viridis)
-library(car)
-library(future)
-library(furrr)
 library(nls.multstart)
-library(ggpubr)
 library(investr)
+library(ggpubr)
 ```
 
 ## Load Data

@@ -10,38 +10,22 @@ output: html_document
 
 This code is run once per respirometry run to process raw data files and create a file with all outputs. 
 
-### Install Packages (if not already installed)
+## Install Packages (if not already installed)
 ```{r message = FALSE}
-if ("segmented" %in% rownames(installed.packages()) == 'FALSE') install.packages('segmented')
-if ("plotrix" %in% rownames(installed.packages()) == 'FALSE') install.packages('plotrix')
-if ("gridExtra" %in% rownames(installed.packages()) == 'FALSE') install.packages('gridExtra')
-if ("remotes" %in% rownames(installed.packages()) == 'FALSE') install.packages('remotes')
-if ("LoLinR" %in% rownames(installed.packages()) == 'FALSE') install_github('colin-olito/LoLinR')
+if ("LoLinR" %in% rownames(installed.packages()) == 'FALSE') devtools::install_github('colin-olito/LoLinR')
 if ("tidyverse" %in% rownames(installed.packages()) == 'FALSE') install.packages('tidyverse')
 if ("here" %in% rownames(installed.packages()) == 'FALSE') install.packages('here')
-if ("patchwork" %in% rownames(installed.packages()) == 'FALSE') install.packages('patchwork')
-if ("nls.multstart" %in% rownames(installed.packages()) == 'FALSE') install.packages('nls.multstart')
+if ("future" %in% rownames(installed.packages()) == 'FALSE') install.packages('future')
+if ("furrr" %in% rownames(installed.packages()) == 'FALSE') install.packages('furrr')
 ```
 
-### Load Libraries
-```{r}
-library(segmented)
-library(plotrix)
-library(gridExtra)
+## Load Libraries
+```{r message = FALSE}
+library(tidyverse) 
+library(here) 
 library(LoLinR)
-library(patchwork)
-library(tidyverse)
-library(here)
-library(ggrepel)
-library(reshape2)
-library(car)
-library(future)
-library(furrr)
-library(ggpubr)
-library(minpack.lm)
-library(car)
-library(nls.multstart)
-library(broom)
+library(future) 
+library(furrr) 
 ```
 
 ### Set file path 

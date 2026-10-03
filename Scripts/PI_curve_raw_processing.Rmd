@@ -11,35 +11,20 @@ This code is run once per PI Curve run to create a file with respo outputs.
 
 ## Install Packages (if not already installed)
 ```{r message = FALSE}
-if ("segmented" %in% rownames(installed.packages()) == 'FALSE') install.packages('segmented')
-if ("plotrix" %in% rownames(installed.packages()) == 'FALSE') install.packages('plotrix')
-if ("gridExtra" %in% rownames(installed.packages()) == 'FALSE') install.packages('gridExtra')
 if ("LoLinR" %in% rownames(installed.packages()) == 'FALSE') devtools::install_github('colin-olito/LoLinR')
-if ("chron" %in% rownames(installed.packages()) == 'FALSE') install.packages('chron')
 if ("tidyverse" %in% rownames(installed.packages()) == 'FALSE') install.packages('tidyverse')
 if ("here" %in% rownames(installed.packages()) == 'FALSE') install.packages('here')
-if ("patchwork" %in% rownames(installed.packages()) == 'FALSE') install.packages('patchwork')
-if ("PNWColors" %in% rownames(installed.packages()) == 'FALSE') install.packages('PNWColors')
+if ("future" %in% rownames(installed.packages()) == 'FALSE') install.packages('future')
+if ("furrr" %in% rownames(installed.packages()) == 'FALSE') install.packages('furrr')
 ```
 
 ## Load Libraries
 ```{r message = FALSE}
-library(segmented)
-library(plotrix)
-library(gridExtra)
+library(tidyverse) 
+library(here) 
 library(LoLinR)
-library(lubridate)
-library(chron)
-library(patchwork)
-library(tidyverse)
-library(here)
-library(PNWColors)
-library(ggrepel)
-library(reshape2)
-library(viridis)
-library(car)
-library(future)
-library(furrr)
+library(future) 
+library(furrr) 
 ```
 
 ### Set file path 

@@ -7,8 +7,8 @@ Micaela Chapuis
 
 ### Created by: Nyssa Silbiger, updated by Maya Powell
 
-This code takes the output from the PI_curve_processing code, as well as
-information about the PI run and tile/chamber measurements, and:
+This code takes the output from the PI_curve_raw_processing code, as
+well as information about the PI run and tile/chamber measurements, and:
 
 - calculates rates  
 - blank-corrects them  
@@ -19,25 +19,11 @@ information about the PI run and tile/chamber measurements, and:
 ## Load Libraries
 
 ``` r
-library(segmented)
-library(plotrix)
-library(gridExtra)
-library(LoLinR)
-library(lubridate)
-library(chron)
-library(patchwork)
 library(tidyverse)
 library(here)
-library(PNWColors)
-library(ggrepel)
-library(reshape2)
-library(viridis)
-library(car)
-library(future)
-library(furrr)
 library(nls.multstart)
-library(ggpubr)
 library(investr)
+library(ggpubr)
 ```
 
 ## Load Data

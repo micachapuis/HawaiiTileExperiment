@@ -18,23 +18,9 @@ as information about the respo runs and tile/chamber measurements, and:
 ## Load Libraries
 
 ``` r
-library(segmented)
-library(plotrix)
-library(gridExtra)
-library(LoLinR)
+library(tidyverse) 
+library(here) 
 library(patchwork)
-library(tidyverse)
-library(here)
-library(ggrepel)
-library(reshape2)
-library(car)
-library(future)
-library(furrr)
-library(ggpubr)
-library(minpack.lm)
-library(car)
-library(nls.multstart)
-library(broom)
 ```
 
 ## Load Data
