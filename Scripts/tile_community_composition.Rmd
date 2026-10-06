@@ -45,14 +45,14 @@ cover <- cover %>% mutate(label_code = replace_values(label_code,
 Calculating percent cover by label
 ```{r}
 percent_cover <- cover %>% 
-  group_by(date, site, tile_id, treatment, label_code) %>%
+  group_by(date, site, tile_id, treatment, deployment_block, label_code) %>%
   summarise(num_points = n()) %>% # calculate number of points for each label
   mutate(total_points = sum(num_points), # create a column with the total points on each tile
          percent_cover = num_points/total_points*100) # calculate percent cover for each label
 ```
 
 
-```{r}
+```{r fig.width = 10}
 percent_cover %>% 
   ggplot(aes(x= tile_id,
                y = percent_cover, 
@@ -69,11 +69,35 @@ percent_cover %>%
       theme(title = element_text(size = 18, face = "bold"), # make title bigger and bold
             axis.title = element_text(size = 16), # make all text bigger
             axis.text = element_text(size = 14),
-            axis.text.x = element_text(angle = 45),
+            axis.text.x = element_text(angle = 45, size = 10),
             legend.title = element_text(size = 16),
             legend.text = element_text(size = 14)) +
     guides(color = "none")
 ```
+
+```{r fig.width = 10}
+percent_cover %>% 
+  ggplot(aes(x= tile_id,
+               y = percent_cover, 
+               fill= label_code, 
+               color= label_code)) + # set lines surrounding each color to match the fill colors 
+      geom_bar(stat="identity") + # stacked bars
+      facet_grid(~deployment_block, scales = "free_x") + 
+  
+      labs(x = "Tile", # labels
+           y="Percent Cover",
+           fill = "Category") +
+
+      theme_minimal() +  # theme
+      theme(title = element_text(size = 18, face = "bold"), # make title bigger and bold
+            axis.title = element_text(size = 16), # make all text bigger
+            axis.text = element_text(size = 14),
+            axis.text.x = element_text(angle = 45, size = 10),
+            legend.title = element_text(size = 16),
+            legend.text = element_text(size = 14)) +
+    guides(color = "none")
+```
+
 
 Filtering out some categories to get just producers
 ```{r}
@@ -83,7 +107,7 @@ producer_cover <- percent_cover %>%
 #         percent_cover = num_points/total_points*100) # recalculate percent cover of producers
 ```
 
-```{r}
+```{r fig.width = 10}
 producer_cover %>% 
   ggplot(aes(x= tile_id,
                y = percent_cover, 
@@ -115,14 +139,14 @@ producer_cat <- cover %>%
     label_code %in% c("Asteronema breviarticulatum", "Unknown Macroalgae") ~ "Macroalgae",
     label_code == "CCA" ~ "CCA",
     label_code %in% c("Bare Substrate", "Outside Area", "Unknown") ~ "Non-Producers")) %>%
-  group_by(date, site, tile_id, treatment, category) %>%
+  group_by(date, site, tile_id, treatment, deployment_block,  category) %>%
   summarise(num_points = n()) %>% # calculate number of points for each category
   mutate(total_points = sum(num_points), # create a column with the total points on each tile
          percent_cover = num_points/total_points*100) %>% # recalculate percent cover for each category, total points still the same as before
   filter(!category == "Non-Producers")
 ```
 
-```{r}
+```{r fig.width = 10}
 producer_cat %>% 
   ggplot(aes(x= tile_id,
                y = percent_cover, 
@@ -144,8 +168,65 @@ producer_cat %>%
             legend.text = element_text(size = 14)) +
     guides(color = "none")
 ```
-```{r}
+```{r fig.width = 10}
 producer_cat %>% 
+  ggplot(aes(x= tile_id,
+               y = percent_cover, 
+               fill= category, 
+               color= category)) + # set lines surrounding each color to match the fill colors 
+      geom_bar(stat="identity") + # stacked bars
+      facet_grid(~deployment_block, scales = "free_x") + 
+  
+      labs(x = "Tile", # labels
+           y="Percent Cover",
+           fill = "Category") +
+
+      theme_minimal() +  # theme
+      theme(title = element_text(size = 18, face = "bold"), # make title bigger and bold
+            axis.title = element_text(size = 16), # make all text bigger
+            axis.text = element_text(size = 14),
+            axis.text.x = element_text(angle = 45),
+            legend.title = element_text(size = 16),
+            legend.text = element_text(size = 14)) +
+    guides(color = "none")
+```
+
+
+```{r fig.width = 10, fig.height = 8}
+producer_cat %>% 
+  ggplot(aes(x= tile_id,
+               y = percent_cover, 
+               fill= category, 
+               color= category)) + # set lines surrounding each color to match the fill colors 
+      geom_bar(stat="identity") + # stacked bars
+      facet_wrap(~deployment_block*treatment, scales = "free_x", nrow = 2) + 
+  
+      labs(x = "Tile", # labels
+           y="Percent Cover",
+           fill = "Category") +
+
+      theme_minimal() +  # theme
+      theme(title = element_text(size = 18, face = "bold"), # make title bigger and bold
+            axis.title = element_text(size = 16), # make all text bigger
+            axis.text = element_text(size = 14),
+            legend.title = element_text(size = 16),
+            legend.text = element_text(size = 14)) +
+    guides(color = "none")
+```
+Producer categories by treatment
+```{r}
+cover %>%
+  mutate(category = case_when(
+    label_code %in% c("Brown Encrusting", "Green Encrusting") ~ "Encrusting Algae",
+    label_code %in% c("Brown Turf", "Red Turf", "Green Turf") ~ "Turf",
+    label_code %in% c("Asteronema breviarticulatum", "Unknown Macroalgae") ~ "Macroalgae",
+    label_code == "CCA" ~ "CCA",
+    label_code %in% c("Bare Substrate", "Outside Area", "Unknown") ~ "Non-Producers")) %>%
+  group_by(treatment, category) %>%
+  summarise(num_points = n()) %>% # calculate number of points for each category
+  mutate(total_points = sum(num_points), # create a column with the total points on each tile
+         percent_cover = num_points/total_points*100) %>% # recalculate percent cover for each category, total points still the same as before
+  filter(!category == "Non-Producers") %>%
   ggplot(aes(x= treatment,
                y = percent_cover, 
                fill= category, 
@@ -173,7 +254,7 @@ encr_turf <- cover %>%
     label_code %in% c("Brown Encrusting", "Green Encrusting", "CCA") ~ "Encrusting Algae",
     label_code %in% c("Brown Turf", "Red Turf", "Green Turf", "Asteronema breviarticulatum", "Unknown Macroalgae") ~ "Turf",
     label_code %in% c("Bare Substrate", "Outside Area", "Unknown") ~ "Non-Producers")) %>%
-  group_by(date, site, tile_id, treatment, category) %>%
+  group_by(date, site, tile_id, treatment, deployment_block, category) %>%
   summarise(num_points = n()) %>% # calculate number of points for each category
   mutate(total_points = sum(num_points), # create a column with the total points on each tile
          percent_cover = num_points/total_points*100) %>% # recalculate percent cover for each category, total points still the same as before

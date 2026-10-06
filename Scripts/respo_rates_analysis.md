@@ -29,6 +29,7 @@ library(patchwork)
 respo_data <-read_csv(here("Data", "Respo", "Pilot", "pilot_tile_respirometry.csv"))
 tile_measurements <- read_csv(here("Data","Respo","tile_measurements.csv"))
 respo_output <- read_csv(here("Data", "Respo", "Pilot", "respo_lightdark_output.csv"))
+comm_comp <- read_csv(here("Data", "encrusting_turf_ratio.csv")) %>% select(-"...1")
 ```
 
 ## Join respo metadata and tile measurements
@@ -48,10 +49,6 @@ respo_rates <- respo_output %>%
 ```
 
     ## Joining with `by = join_by(sample_ID, run_block, light_dark, light_level)`
-
-``` r
-#Account for blank rate by sample run Block (if we do at least one blank per block)
-```
 
 ### Normalize Respiration Rates to Blanks
 
@@ -176,6 +173,22 @@ rates_PR_DWnorm
 write_csv(rates_PR_SAnorm,here("Data","Respo", "Pilot", "Respo Outputs", "PnR_rates_DWnorm.csv")) # export all the uptake rates
 ```
 
+### Add Community Comp Data to Rates Files (pivot wider)
+
+``` r
+rates_SA_long <- rates_PR_SAnorm %>% 
+  pivot_wider(names_from = "PR", 
+              values_from = "values") %>%
+  left_join(comm_comp,  by = c("tile_ID" = "tile_id", "treatment", "respo_date" = "date"))
+```
+
+``` r
+rates_DW_long <- rates_PR_DWnorm %>% 
+  pivot_wider(names_from = "PR", 
+              values_from = "values") %>% 
+  left_join(comm_comp,  by = c("tile_ID" = "tile_id", "treatment", "respo_date" = "date"))
+```
+
 ## Plots
 
 #### Algae Biomass by Treatment
@@ -191,7 +204,7 @@ tile_measurements %>%
   guides(color = "none")
 ```
 
-![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
 ``` r
 tile_measurements %>% 
@@ -221,7 +234,7 @@ rates_PR_SAnorm %>%
   guides(color = "none")
 ```
 
-![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
 
 #### Photosynthesis + Respiration Plot, Dry Weight Normalized
 
@@ -238,7 +251,7 @@ rates_PR_DWnorm %>%
   guides(color = "none")
 ```
 
-![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
 ``` r
 rates_PR_SAnorm %>% 
@@ -300,7 +313,7 @@ rates_PR_SAnorm %>% filter(PR == "gross_photosynthesis") %>%
   guides(color = "none")
 ```
 
-![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
 
 #### Gross Photosynthesis Plot, Dry Weight Normalized
 
@@ -314,7 +327,7 @@ rates_PR_DWnorm %>% filter(PR == "gross_photosynthesis") %>%
   guides(color = "none")
 ```
 
-![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
+![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
 
 #### Net Photosynthesis Plot, Surface Area Normalized
 
@@ -328,7 +341,7 @@ rates_PR_SAnorm %>% filter(PR == "net_photosynthesis") %>%
   guides(color = "none")
 ```
 
-![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
+![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
 
 #### Net Photosynthesis Plot, Dry Weight Normalized
 
@@ -342,7 +355,7 @@ rates_PR_DWnorm %>% filter(PR == "net_photosynthesis") %>%
   guides(color = "none")
 ```
 
-![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
+![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
 
 #### Respiration Plot, Surface Area Normalized
 
@@ -356,7 +369,7 @@ rates_PR_SAnorm %>% filter(PR == "respiration") %>%
   guides(color = "none")
 ```
 
-![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
+![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
 
 #### Respiration Plot, Dry Weight Normalized
 
@@ -370,7 +383,7 @@ rates_PR_DWnorm %>% filter(PR == "respiration") %>%
   guides(color = "none")
 ```
 
-![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
 
 #### Rates by Tile
 
@@ -381,4 +394,106 @@ rates_normalized %>%
   facet_wrap(~treatment, scales = "free_x")
 ```
 
-![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
+![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
+
+#### Rates vs Encrusting/Turf Ratio
+
+##### Net Photo, Surface Area Normalized
+
+``` r
+rates_SA_long %>% 
+  ggplot(aes(x = ratio, y = net_photosynthesis)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~treatment) + 
+  theme_bw() +
+  labs(x = "Encrusting/Turf Ratio")
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-27-1.png)<!-- -->
+
+``` r
+# higher ratio means more encrusting algae relative to turf
+```
+
+##### Net Photo, Dry Weight Normalized
+
+``` r
+rates_DW_long %>% 
+  ggplot(aes(x = ratio, y = net_photosynthesis)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~treatment) + 
+  theme_bw() +
+  labs(x = "Encrusting/Turf Ratio")
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
+
+##### Gross Photo, Surface Area Normalized
+
+``` r
+rates_SA_long %>% 
+  ggplot(aes(x = ratio, y = gross_photosynthesis)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~treatment) + 
+  theme_bw() +
+  labs(x = "Encrusting/Turf Ratio")
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
+
+##### Gross Photo, Dry Weight Normalized
+
+``` r
+rates_DW_long %>% 
+  ggplot(aes(x = ratio, y = gross_photosynthesis)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~treatment) + 
+  theme_bw() +
+  labs(x = "Encrusting/Turf Ratio")
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
+
+##### Respiration, Surface Area Normalized
+
+``` r
+rates_SA_long %>% 
+  ggplot(aes(x = ratio, y = respiration)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~treatment) + 
+  theme_bw() +
+  labs(x = "Encrusting/Turf Ratio")
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
+
+##### Respiration, Dry Weight Normalized
+
+``` r
+rates_DW_long %>% 
+  ggplot(aes(x = ratio, y = respiration)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~treatment) + 
+  theme_bw() +
+  labs(x = "Encrusting/Turf Ratio")
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->

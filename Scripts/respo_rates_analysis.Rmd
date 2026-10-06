@@ -27,6 +27,7 @@ library(patchwork)
 respo_data <-read_csv(here("Data", "Respo", "Pilot", "pilot_tile_respirometry.csv"))
 tile_measurements <- read_csv(here("Data","Respo","tile_measurements.csv"))
 respo_output <- read_csv(here("Data", "Respo", "Pilot", "respo_lightdark_output.csv"))
+comm_comp <- read_csv(here("Data", "encrusting_turf_ratio.csv")) %>% select(-"...1")
 ```
 
 ## Join respo metadata and tile measurements  
@@ -42,8 +43,6 @@ respo_rates <- respo_output %>%
          umol_sec = umol_liter_sec * chamber_volume_l) %>% # Account for chamber volume to convert from umol L-1 s-1 to umol s-1. This standardizes across water volumes (different because different communities on each tile, thickness of epoxy, etc) and removes per Liter
   mutate_if(sapply(., is.character), as.factor)  # convert character columns to factors
   
-#Account for blank rate by sample run Block (if we do at least one blank per block)
-
 ```
 
 
@@ -129,6 +128,24 @@ rates_PR_DWnorm
 ```{r}
 write_csv(rates_PR_SAnorm,here("Data","Respo", "Pilot", "Respo Outputs", "PnR_rates_DWnorm.csv")) # export all the uptake rates
 ```
+
+
+
+### Add Community Comp Data to Rates Files (pivot wider)
+```{r}
+rates_SA_long <- rates_PR_SAnorm %>% 
+  pivot_wider(names_from = "PR", 
+              values_from = "values") %>%
+  left_join(comm_comp,  by = c("tile_ID" = "tile_id", "treatment", "respo_date" = "date"))
+```
+
+```{r}
+rates_DW_long <- rates_PR_DWnorm %>% 
+  pivot_wider(names_from = "PR", 
+              values_from = "values") %>% 
+  left_join(comm_comp,  by = c("tile_ID" = "tile_id", "treatment", "respo_date" = "date"))
+```
+
 
 ## Plots  
 #### Algae Biomass by Treatment  
@@ -265,3 +282,71 @@ rates_normalized %>%
   facet_wrap(~treatment, scales = "free_x")
 ```
 
+#### Rates vs Encrusting/Turf Ratio
+##### Net Photo, Surface Area Normalized
+```{r}
+rates_SA_long %>% 
+  ggplot(aes(x = ratio, y = net_photosynthesis)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~treatment) + 
+  theme_bw() +
+  labs(x = "Encrusting/Turf Ratio")
+
+# higher ratio means more encrusting algae relative to turf
+```
+
+##### Net Photo, Dry Weight Normalized
+```{r}
+rates_DW_long %>% 
+  ggplot(aes(x = ratio, y = net_photosynthesis)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~treatment) + 
+  theme_bw() +
+  labs(x = "Encrusting/Turf Ratio")
+```
+
+##### Gross Photo, Surface Area Normalized
+```{r}
+rates_SA_long %>% 
+  ggplot(aes(x = ratio, y = gross_photosynthesis)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~treatment) + 
+  theme_bw() +
+  labs(x = "Encrusting/Turf Ratio")
+```
+
+##### Gross Photo, Dry Weight Normalized
+```{r}
+rates_DW_long %>% 
+  ggplot(aes(x = ratio, y = gross_photosynthesis)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~treatment) + 
+  theme_bw() +
+  labs(x = "Encrusting/Turf Ratio")
+```
+
+##### Respiration, Surface Area Normalized
+```{r}
+rates_SA_long %>% 
+  ggplot(aes(x = ratio, y = respiration)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~treatment) + 
+  theme_bw() +
+  labs(x = "Encrusting/Turf Ratio")
+```
+
+##### Respiration, Dry Weight Normalized
+```{r}
+rates_DW_long %>% 
+  ggplot(aes(x = ratio, y = respiration)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~treatment) + 
+  theme_bw() +
+  labs(x = "Encrusting/Turf Ratio")
+```

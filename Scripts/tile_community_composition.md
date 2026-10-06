@@ -48,19 +48,19 @@ Calculating percent cover by label
 
 ``` r
 percent_cover <- cover %>% 
-  group_by(date, site, tile_id, treatment, label_code) %>%
+  group_by(date, site, tile_id, treatment, deployment_block, label_code) %>%
   summarise(num_points = n()) %>% # calculate number of points for each label
   mutate(total_points = sum(num_points), # create a column with the total points on each tile
          percent_cover = num_points/total_points*100) # calculate percent cover for each label
 ```
 
     ## `summarise()` has regrouped the output.
-    ## ℹ Summaries were computed grouped by date, site, tile_id, treatment, and
-    ##   label_code.
-    ## ℹ Output is grouped by date, site, tile_id, and treatment.
+    ## ℹ Summaries were computed grouped by date, site, tile_id, treatment,
+    ##   deployment_block, and label_code.
+    ## ℹ Output is grouped by date, site, tile_id, treatment, and deployment_block.
     ## ℹ Use `summarise(.groups = "drop_last")` to silence this message.
-    ## ℹ Use `summarise(.by = c(date, site, tile_id, treatment, label_code))` for
-    ##   per-operation grouping (`?dplyr::dplyr_by`) instead.
+    ## ℹ Use `summarise(.by = c(date, site, tile_id, treatment, deployment_block,
+    ##   label_code))` for per-operation grouping (`?dplyr::dplyr_by`) instead.
 
 ``` r
 percent_cover %>% 
@@ -79,13 +79,38 @@ percent_cover %>%
       theme(title = element_text(size = 18, face = "bold"), # make title bigger and bold
             axis.title = element_text(size = 16), # make all text bigger
             axis.text = element_text(size = 14),
-            axis.text.x = element_text(angle = 45),
+            axis.text.x = element_text(angle = 45, size = 10),
             legend.title = element_text(size = 16),
             legend.text = element_text(size = 14)) +
     guides(color = "none")
 ```
 
 ![](tile_community_composition_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+``` r
+percent_cover %>% 
+  ggplot(aes(x= tile_id,
+               y = percent_cover, 
+               fill= label_code, 
+               color= label_code)) + # set lines surrounding each color to match the fill colors 
+      geom_bar(stat="identity") + # stacked bars
+      facet_grid(~deployment_block, scales = "free_x") + 
+  
+      labs(x = "Tile", # labels
+           y="Percent Cover",
+           fill = "Category") +
+
+      theme_minimal() +  # theme
+      theme(title = element_text(size = 18, face = "bold"), # make title bigger and bold
+            axis.title = element_text(size = 16), # make all text bigger
+            axis.text = element_text(size = 14),
+            axis.text.x = element_text(angle = 45, size = 10),
+            legend.title = element_text(size = 16),
+            legend.text = element_text(size = 14)) +
+    guides(color = "none")
+```
+
+![](tile_community_composition_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
 Filtering out some categories to get just producers
 
@@ -119,7 +144,7 @@ producer_cover %>%
     guides(color = "none")
 ```
 
-![](tile_community_composition_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+![](tile_community_composition_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 ## Assign to broader categories
 
@@ -131,7 +156,7 @@ producer_cat <- cover %>%
     label_code %in% c("Asteronema breviarticulatum", "Unknown Macroalgae") ~ "Macroalgae",
     label_code == "CCA" ~ "CCA",
     label_code %in% c("Bare Substrate", "Outside Area", "Unknown") ~ "Non-Producers")) %>%
-  group_by(date, site, tile_id, treatment, category) %>%
+  group_by(date, site, tile_id, treatment, deployment_block,  category) %>%
   summarise(num_points = n()) %>% # calculate number of points for each category
   mutate(total_points = sum(num_points), # create a column with the total points on each tile
          percent_cover = num_points/total_points*100) %>% # recalculate percent cover for each category, total points still the same as before
@@ -139,12 +164,12 @@ producer_cat <- cover %>%
 ```
 
     ## `summarise()` has regrouped the output.
-    ## ℹ Summaries were computed grouped by date, site, tile_id, treatment, and
-    ##   category.
-    ## ℹ Output is grouped by date, site, tile_id, and treatment.
+    ## ℹ Summaries were computed grouped by date, site, tile_id, treatment,
+    ##   deployment_block, and category.
+    ## ℹ Output is grouped by date, site, tile_id, treatment, and deployment_block.
     ## ℹ Use `summarise(.groups = "drop_last")` to silence this message.
-    ## ℹ Use `summarise(.by = c(date, site, tile_id, treatment, category))` for
-    ##   per-operation grouping (`?dplyr::dplyr_by`) instead.
+    ## ℹ Use `summarise(.by = c(date, site, tile_id, treatment, deployment_block,
+    ##   category))` for per-operation grouping (`?dplyr::dplyr_by`) instead.
 
 ``` r
 producer_cat %>% 
@@ -169,10 +194,71 @@ producer_cat %>%
     guides(color = "none")
 ```
 
-![](tile_community_composition_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+![](tile_community_composition_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
 ``` r
 producer_cat %>% 
+  ggplot(aes(x= tile_id,
+               y = percent_cover, 
+               fill= category, 
+               color= category)) + # set lines surrounding each color to match the fill colors 
+      geom_bar(stat="identity") + # stacked bars
+      facet_grid(~deployment_block, scales = "free_x") + 
+  
+      labs(x = "Tile", # labels
+           y="Percent Cover",
+           fill = "Category") +
+
+      theme_minimal() +  # theme
+      theme(title = element_text(size = 18, face = "bold"), # make title bigger and bold
+            axis.title = element_text(size = 16), # make all text bigger
+            axis.text = element_text(size = 14),
+            axis.text.x = element_text(angle = 45),
+            legend.title = element_text(size = 16),
+            legend.text = element_text(size = 14)) +
+    guides(color = "none")
+```
+
+![](tile_community_composition_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+
+``` r
+producer_cat %>% 
+  ggplot(aes(x= tile_id,
+               y = percent_cover, 
+               fill= category, 
+               color= category)) + # set lines surrounding each color to match the fill colors 
+      geom_bar(stat="identity") + # stacked bars
+      facet_wrap(~deployment_block*treatment, scales = "free_x", nrow = 2) + 
+  
+      labs(x = "Tile", # labels
+           y="Percent Cover",
+           fill = "Category") +
+
+      theme_minimal() +  # theme
+      theme(title = element_text(size = 18, face = "bold"), # make title bigger and bold
+            axis.title = element_text(size = 16), # make all text bigger
+            axis.text = element_text(size = 14),
+            legend.title = element_text(size = 16),
+            legend.text = element_text(size = 14)) +
+    guides(color = "none")
+```
+
+![](tile_community_composition_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+Producer categories by treatment
+
+``` r
+cover %>%
+  mutate(category = case_when(
+    label_code %in% c("Brown Encrusting", "Green Encrusting") ~ "Encrusting Algae",
+    label_code %in% c("Brown Turf", "Red Turf", "Green Turf") ~ "Turf",
+    label_code %in% c("Asteronema breviarticulatum", "Unknown Macroalgae") ~ "Macroalgae",
+    label_code == "CCA" ~ "CCA",
+    label_code %in% c("Bare Substrate", "Outside Area", "Unknown") ~ "Non-Producers")) %>%
+  group_by(treatment, category) %>%
+  summarise(num_points = n()) %>% # calculate number of points for each category
+  mutate(total_points = sum(num_points), # create a column with the total points on each tile
+         percent_cover = num_points/total_points*100) %>% # recalculate percent cover for each category, total points still the same as before
+  filter(!category == "Non-Producers") %>%
   ggplot(aes(x= treatment,
                y = percent_cover, 
                fill= category, 
@@ -192,7 +278,14 @@ producer_cat %>%
     guides(color = "none")
 ```
 
-![](tile_community_composition_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+    ## `summarise()` has regrouped the output.
+    ## ℹ Summaries were computed grouped by treatment and category.
+    ## ℹ Output is grouped by treatment.
+    ## ℹ Use `summarise(.groups = "drop_last")` to silence this message.
+    ## ℹ Use `summarise(.by = c(treatment, category))` for per-operation grouping
+    ##   (`?dplyr::dplyr_by`) instead.
+
+![](tile_community_composition_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
 ## Encrusting vs Turf
 
@@ -206,7 +299,7 @@ encr_turf <- cover %>%
     label_code %in% c("Brown Encrusting", "Green Encrusting", "CCA") ~ "Encrusting Algae",
     label_code %in% c("Brown Turf", "Red Turf", "Green Turf", "Asteronema breviarticulatum", "Unknown Macroalgae") ~ "Turf",
     label_code %in% c("Bare Substrate", "Outside Area", "Unknown") ~ "Non-Producers")) %>%
-  group_by(date, site, tile_id, treatment, category) %>%
+  group_by(date, site, tile_id, treatment, deployment_block, category) %>%
   summarise(num_points = n()) %>% # calculate number of points for each category
   mutate(total_points = sum(num_points), # create a column with the total points on each tile
          percent_cover = num_points/total_points*100) %>% # recalculate percent cover for each category, total points still the same as before
@@ -214,12 +307,12 @@ encr_turf <- cover %>%
 ```
 
     ## `summarise()` has regrouped the output.
-    ## ℹ Summaries were computed grouped by date, site, tile_id, treatment, and
-    ##   category.
-    ## ℹ Output is grouped by date, site, tile_id, and treatment.
+    ## ℹ Summaries were computed grouped by date, site, tile_id, treatment,
+    ##   deployment_block, and category.
+    ## ℹ Output is grouped by date, site, tile_id, treatment, and deployment_block.
     ## ℹ Use `summarise(.groups = "drop_last")` to silence this message.
-    ## ℹ Use `summarise(.by = c(date, site, tile_id, treatment, category))` for
-    ##   per-operation grouping (`?dplyr::dplyr_by`) instead.
+    ## ℹ Use `summarise(.by = c(date, site, tile_id, treatment, deployment_block,
+    ##   category))` for per-operation grouping (`?dplyr::dplyr_by`) instead.
 
 ``` r
 ratio <- encr_turf %>%
