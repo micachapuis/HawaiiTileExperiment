@@ -405,7 +405,7 @@ rates_SA_long %>%
   ggplot(aes(x = ratio, y = net_photosynthesis)) + 
   geom_point() + 
   geom_smooth(method = "lm") +
-  facet_wrap(~treatment) + 
+  #facet_wrap(~treatment) + 
   theme_bw() +
   labs(x = "Encrusting/Turf Ratio")
 ```
@@ -425,7 +425,7 @@ rates_DW_long %>%
   ggplot(aes(x = ratio, y = net_photosynthesis)) + 
   geom_point() + 
   geom_smooth(method = "lm") +
-  facet_wrap(~treatment) + 
+  #facet_wrap(~treatment) + 
   theme_bw() +
   labs(x = "Encrusting/Turf Ratio")
 ```
@@ -441,7 +441,7 @@ rates_SA_long %>%
   ggplot(aes(x = ratio, y = gross_photosynthesis)) + 
   geom_point() + 
   geom_smooth(method = "lm") +
-  facet_wrap(~treatment) + 
+  #facet_wrap(~treatment) + 
   theme_bw() +
   labs(x = "Encrusting/Turf Ratio")
 ```
@@ -457,7 +457,7 @@ rates_DW_long %>%
   ggplot(aes(x = ratio, y = gross_photosynthesis)) + 
   geom_point() + 
   geom_smooth(method = "lm") +
-  facet_wrap(~treatment) + 
+  #facet_wrap(~treatment) + 
   theme_bw() +
   labs(x = "Encrusting/Turf Ratio")
 ```
@@ -473,7 +473,7 @@ rates_SA_long %>%
   ggplot(aes(x = ratio, y = respiration)) + 
   geom_point() + 
   geom_smooth(method = "lm") +
-  facet_wrap(~treatment) + 
+  #facet_wrap(~treatment) + 
   theme_bw() +
   labs(x = "Encrusting/Turf Ratio")
 ```
@@ -489,7 +489,7 @@ rates_DW_long %>%
   ggplot(aes(x = ratio, y = respiration)) + 
   geom_point() + 
   geom_smooth(method = "lm") +
-  facet_wrap(~treatment) + 
+  #facet_wrap(~treatment) + 
   theme_bw() +
   labs(x = "Encrusting/Turf Ratio")
 ```
