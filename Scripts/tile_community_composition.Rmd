@@ -25,6 +25,13 @@ cover <- left_join(cover, tile_measurements, by = c("tile_id" = "tile_ID")) %>%
   select(-c("sample_ID", "chamber_volume_ml", "notes"))
 ```
 
+Edit tile ID to have letter at the beginning so on plots white tiles are always first
+```{r}
+cover <- cover %>%
+  mutate(ID_tile = str_c(str_sub(tile_id, -1), str_sub(tile_id, 1, -2))) # str_c joins two strings, the first one is just the letter (taking the last character out of each tile_id string) and the second one is the numbers (takings everything from the first character to the second to last charafcter)
+```
+
+
 Editing labels
 ```{r}
 cover <- cover %>% mutate(label_code = replace_values(label_code,
@@ -45,7 +52,8 @@ cover <- cover %>% mutate(label_code = replace_values(label_code,
 Calculating percent cover by label
 ```{r}
 percent_cover <- cover %>% 
-  group_by(date, site, tile_id, treatment, deployment_block, label_code) %>%
+  filter(!(label_code %in% c("Outside Area"))) %>% # filter out points outside of the settlement area
+  group_by(date, site, tile_id, ID_tile, treatment, deployment_block, label_code) %>%
   summarise(num_points = n()) %>% # calculate number of points for each label
   mutate(total_points = sum(num_points), # create a column with the total points on each tile
          percent_cover = num_points/total_points*100) # calculate percent cover for each label
@@ -54,7 +62,7 @@ percent_cover <- cover %>%
 
 ```{r fig.width = 10}
 percent_cover %>% 
-  ggplot(aes(x= tile_id,
+  ggplot(aes(x= ID_tile,
                y = percent_cover, 
                fill= label_code, 
                color= label_code)) + # set lines surrounding each color to match the fill colors 
@@ -77,7 +85,7 @@ percent_cover %>%
 
 ```{r fig.width = 10}
 percent_cover %>% 
-  ggplot(aes(x= tile_id,
+  ggplot(aes(x= ID_tile,
                y = percent_cover, 
                fill= label_code, 
                color= label_code)) + # set lines surrounding each color to match the fill colors 
@@ -99,17 +107,19 @@ percent_cover %>%
 ```
 
 
-Filtering out some categories to get just producers
+Filtering out just producers
 ```{r}
-producer_cover <- percent_cover %>% 
-  filter(!(label_code %in% c("Bare Substrate", "Outside Area", "Unknown"))) #%>%
-#  mutate(total_points = sum(num_points), # recalculate total points after filter
-#         percent_cover = num_points/total_points*100) # recalculate percent cover of producers
+producer_cover <- cover %>% 
+  filter(!(label_code %in% c("Outside Area", "Bare Substrate", "Unknown"))) %>%
+  group_by(date, site, tile_id, ID_tile, treatment, deployment_block, label_code) %>%
+  summarise(num_points = n()) %>% # calculate number of points for each label
+  mutate(total_points = sum(num_points), # create a column with the total points on each tile
+         percent_cover = num_points/total_points*100) # calculate percent cover for each label
 ```
 
 ```{r fig.width = 10}
 producer_cover %>% 
-  ggplot(aes(x= tile_id,
+  ggplot(aes(x= ID_tile,
                y = percent_cover, 
                fill= label_code, 
                color= label_code)) + # set lines surrounding each color to match the fill colors 
@@ -133,22 +143,23 @@ producer_cover %>%
 ## Assign to broader categories
 ```{r}
 producer_cat <- cover %>%
+  filter(!(label_code %in% c("Outside Area"))) %>% # filter out points outside of the settlement area
   mutate(category = case_when(
     label_code %in% c("Brown Encrusting", "Green Encrusting") ~ "Encrusting Algae",
     label_code %in% c("Brown Turf", "Red Turf", "Green Turf") ~ "Turf",
     label_code %in% c("Asteronema breviarticulatum", "Unknown Macroalgae") ~ "Macroalgae",
     label_code == "CCA" ~ "CCA",
-    label_code %in% c("Bare Substrate", "Outside Area", "Unknown") ~ "Non-Producers")) %>%
-  group_by(date, site, tile_id, treatment, deployment_block,  category) %>%
+    label_code %in% c("Bare Substrate", "Unknown") ~ "Other")) %>%
+  group_by(date, site, tile_id, ID_tile, treatment, deployment_block,  category) %>%
   summarise(num_points = n()) %>% # calculate number of points for each category
   mutate(total_points = sum(num_points), # create a column with the total points on each tile
-         percent_cover = num_points/total_points*100) %>% # recalculate percent cover for each category, total points still the same as before
-  filter(!category == "Non-Producers")
+         percent_cover = num_points/total_points*100) #%>% # recalculate percent cover for each category, total points still the same as before
+  #filter(!category == "Non-Producers")
 ```
 
 ```{r fig.width = 10}
 producer_cat %>% 
-  ggplot(aes(x= tile_id,
+  ggplot(aes(x= ID_tile,
                y = percent_cover, 
                fill= category, 
                color= category)) + # set lines surrounding each color to match the fill colors 
@@ -166,11 +177,13 @@ producer_cat %>%
             axis.text.x = element_text(angle = 45),
             legend.title = element_text(size = 16),
             legend.text = element_text(size = 14)) +
-    guides(color = "none")
+    guides(color = "none") +
+  scale_fill_manual(values = c("violetred2", '#FFA07A', "#6E8B3D", "gray45", "#4F94CD")) +
+  scale_color_manual(values = c("violetred2", '#FFA07A', "#6E8B3D", "gray45", "#4F94CD"))
 ```
 ```{r fig.width = 10}
 producer_cat %>% 
-  ggplot(aes(x= tile_id,
+  ggplot(aes(x= ID_tile,
                y = percent_cover, 
                fill= category, 
                color= category)) + # set lines surrounding each color to match the fill colors 
@@ -188,50 +201,22 @@ producer_cat %>%
             axis.text.x = element_text(angle = 45),
             legend.title = element_text(size = 16),
             legend.text = element_text(size = 14)) +
-    guides(color = "none")
+    guides(color = "none") +
+  scale_fill_manual(values = c("violetred2", '#FFA07A', "#6E8B3D", "gray45", "#4F94CD")) +
+  scale_color_manual(values = c("violetred2", '#FFA07A', "#6E8B3D", "gray45", "#4F94CD"))
+
+ggsave(here("Output", "block_percent_cover.jpeg"))
+
 ```
 
-
-```{r fig.width = 10, fig.height = 8}
-producer_cat %>% 
-  ggplot(aes(x= tile_id,
-               y = percent_cover, 
-               fill= category, 
-               color= category)) + # set lines surrounding each color to match the fill colors 
-      geom_bar(stat="identity") + # stacked bars
-      facet_wrap(~deployment_block*treatment, scales = "free_x", nrow = 2) + 
-  
-      labs(x = "Tile", # labels
-           y="Percent Cover",
-           fill = "Category") +
-
-      theme_minimal() +  # theme
-      theme(title = element_text(size = 18, face = "bold"), # make title bigger and bold
-            axis.title = element_text(size = 16), # make all text bigger
-            axis.text = element_text(size = 14),
-            legend.title = element_text(size = 16),
-            legend.text = element_text(size = 14)) +
-    guides(color = "none")
-```
 Producer categories by treatment
 ```{r}
-cover %>%
-  mutate(category = case_when(
-    label_code %in% c("Brown Encrusting", "Green Encrusting") ~ "Encrusting Algae",
-    label_code %in% c("Brown Turf", "Red Turf", "Green Turf") ~ "Turf",
-    label_code %in% c("Asteronema breviarticulatum", "Unknown Macroalgae") ~ "Macroalgae",
-    label_code == "CCA" ~ "CCA",
-    label_code %in% c("Bare Substrate", "Outside Area", "Unknown") ~ "Non-Producers")) %>%
-  group_by(treatment, category) %>%
-  summarise(num_points = n()) %>% # calculate number of points for each category
-  mutate(total_points = sum(num_points), # create a column with the total points on each tile
-         percent_cover = num_points/total_points*100) %>% # recalculate percent cover for each category, total points still the same as before
-  filter(!category == "Non-Producers") %>%
+producer_cat %>%
   ggplot(aes(x= treatment,
                y = percent_cover, 
                fill= category, 
                color= category)) + # set lines surrounding each color to match the fill colors 
-      geom_bar(stat="identity") + # stacked bars
+      geom_bar(stat="identity", position = "fill") + 
     
       labs(x = "Treatment", # labels
            y="Percent Cover",
@@ -243,17 +228,22 @@ cover %>%
             axis.text = element_text(size = 14),
             legend.title = element_text(size = 16),
             legend.text = element_text(size = 14)) +
-    guides(color = "none")
+    guides(color = "none") +
+  scale_fill_manual(values = c("violetred2", '#FFA07A', "#6E8B3D", "gray45", "#4F94CD")) +
+  scale_color_manual(values = c("violetred2", '#FFA07A', "#6E8B3D", "gray45", "#4F94CD"))
+
+ggsave(here("Output", "treatment_percent_cover.jpeg"))
 ```
 
 ## Encrusting vs Turf
 Switching to just encrusting/turf (encrusting includes CCA and turf will include macro, which for now is just asteronema and other unidentified small macroalgae)
 ```{r}
 encr_turf <- cover %>%
+  filter(!(label_code %in% c("Outside Area"))) %>% # filter out points outside of the settlement area
   mutate(category = case_when(
     label_code %in% c("Brown Encrusting", "Green Encrusting", "CCA") ~ "Encrusting Algae",
     label_code %in% c("Brown Turf", "Red Turf", "Green Turf", "Asteronema breviarticulatum", "Unknown Macroalgae") ~ "Turf",
-    label_code %in% c("Bare Substrate", "Outside Area", "Unknown") ~ "Non-Producers")) %>%
+    label_code %in% c("Bare Substrate", "Unknown") ~ "Other")) %>%
   group_by(date, site, tile_id, treatment, deployment_block, category) %>%
   summarise(num_points = n()) %>% # calculate number of points for each category
   mutate(total_points = sum(num_points), # create a column with the total points on each tile
@@ -274,3 +264,82 @@ ratio <- encr_turf %>%
 ratio %>% write.csv(here("Data", "encrusting_turf_ratio.csv"))
 ```
 
+
+### Tests
+
+#### Ratio black vs white
+```{r} 
+ratio %>% ggplot(aes(x = treatment, y = ratio)) + geom_boxplot()
+```
+
+```{r}
+# reshape data so each block has a white ratio and a black ratio
+block_ratio <- ratio %>% ungroup() %>% select(deployment_block, treatment, ratio) %>%
+  pivot_wider(names_from = treatment, values_from = ratio)
+
+block_ratio
+```
+
+```{r}
+# test whether black tiles have higher encr/turf ratio than white tiles 
+# NOT paired (treats black and white tiles as independent samples, is the avg ratio different between all black and all white tiles?)
+t.test(block_ratio$black, block_ratio$white)
+```
+
+```{r}
+# test whether black tiles have higher encr/turf ratio than white tiles 
+# paired t-test (is the ratio higher on black tiles than on their paired white tile)
+t.test(block_ratio$black, block_ratio$white, paired = TRUE)
+```
+
+
+#### Encrusting black vs white
+```{r} 
+ratio %>% ggplot(aes(x = treatment, y = `Encrusting Algae`)) + geom_boxplot()
+```
+```{r}
+# reshape data so each block has a white encrusting and a black encrusting
+block_encr <- ratio %>% ungroup() %>% select(deployment_block, treatment, `Encrusting Algae`) %>%
+  pivot_wider(names_from = treatment, values_from = `Encrusting Algae`)
+
+block_encr
+```
+
+
+```{r}
+# test whether black tiles have higher encrusting cover than white tiles 
+# NOT paired (treats black and white tiles as independent samples, is the avg encr cover different between all black and all white tiles?)
+t.test(block_encr$black, block_encr$white)
+```
+
+```{r}
+# test whether black tiles have higher encrusting cover than white tiles 
+# paired t-test (is the encrusting cover higher on black tiles than on their paired white tile)
+t.test(block_encr$black, block_encr$white, paired = TRUE)
+```
+
+#### Turf black vs white
+```{r}
+ratio %>% ggplot(aes(x = treatment, y = Turf)) + geom_boxplot()
+```
+
+```{r}
+# reshape data so each block has a white turf and a black turf
+block_turf <- ratio %>% ungroup() %>% select(deployment_block, treatment, Turf) %>%
+  pivot_wider(names_from = treatment, values_from = Turf)
+
+block_turf
+```
+
+
+```{r}
+# test whether black tiles have higher turf cover than white tiles 
+# NOT paired (treats black and white tiles as independent samples, is the avg turf cover different between all black and all white tiles?)
+t.test(block_turf$black, block_turf$white)
+```
+
+```{r}
+# test whether black tiles have higher turf cover than white tiles 
+# paired t-test (is the turf cover higher on black tiles than on their paired white tile)
+t.test(block_turf$black, block_turf$white, paired = TRUE)
+```

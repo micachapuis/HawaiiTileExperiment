@@ -1,0 +1,54 @@
+---
+title: "Background Data"
+author: "Micaela Chapuis"
+date: "2026-10-08"
+output: github_document
+---
+
+## Load Libraries
+```{r message = FALSE}
+library(tidyverse)
+library(here)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(rnaturalearthhires)
+```
+
+## Load Data
+```{r message = FALSE}
+sites <- read_csv(here("Data", "deployment_sites.csv"))
+```
+
+# Site Map
+## Get Hawaii map
+```{r}
+# get US states map data and filter for hawaii
+hawaii <- ne_states(country = "united states of america", returnclass = "sf") %>% 
+  filter(name == "Hawaii")
+```
+
+## Plot Site Map
+```{r}
+ggplot() +
+  geom_sf(data=hawaii, fill = "darkseagreen", color = "white") +
+  geom_point(data = sites, 
+             aes(x = longitude, y = latitude, color = deployment_period, fill = deployment_period),
+             shape = 21, #filled circle
+             size = 5) + 
+  geom_label(data = sites, 
+            aes(x = longitude, y = latitude, label = site_name),
+            hjust = 0.5, vjust = 1.5) +
+  theme_minimal() +
+  coord_sf(
+    xlim = c(-158.3, -157.55), # longitude limits
+    ylim = c(21.2, 21.75), # latitude limits
+    expand = FALSE) + # removes padding around limits
+  labs(x = "Longitude", y = "Latitude", fill = "Deployment", color = "Deployment") +
+  scale_fill_manual(values = c("#ff6e49", "#78a0ff"), labels = c("Summer", "Winter")) +
+  scale_color_manual(values = c("#99422b", "#486099"), labels = c("Summer", "Winter")) 
+
+
+ggsave(here("Output", "deployment_sites.jpeg"))
+```
+

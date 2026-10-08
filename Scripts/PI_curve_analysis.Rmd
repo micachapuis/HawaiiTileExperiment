@@ -17,7 +17,6 @@ This code takes the output from the PI_curve_raw_processing code, as well as inf
 - calculates Ik   
 
 ## Load Libraries
-
 ```{r message = FALSE}
 library(tidyverse)
 library(here)
