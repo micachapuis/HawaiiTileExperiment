@@ -220,7 +220,9 @@ producer_cat %>%
             axis.text.x = element_text(angle = 45),
             legend.title = element_text(size = 16),
             legend.text = element_text(size = 14)) +
-    guides(color = "none")
+    guides(color = "none") +
+  scale_fill_manual(values = c("violetred2", '#FFA07A', "#6E8B3D", "gray45", "#4F94CD")) +
+  scale_color_manual(values = c("violetred2", '#FFA07A', "#6E8B3D", "gray45", "#4F94CD"))
 ```
 
 ![](tile_community_composition_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
@@ -245,10 +247,18 @@ producer_cat %>%
             axis.text.x = element_text(angle = 45),
             legend.title = element_text(size = 16),
             legend.text = element_text(size = 14)) +
-    guides(color = "none")
+    guides(color = "none") +
+  scale_fill_manual(values = c("violetred2", '#FFA07A', "#6E8B3D", "gray45", "#4F94CD")) +
+  scale_color_manual(values = c("violetred2", '#FFA07A', "#6E8B3D", "gray45", "#4F94CD"))
 ```
 
 ![](tile_community_composition_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+``` r
+ggsave(here("Output", "block_percent_cover.jpeg"))
+```
+
+    ## Saving 10 x 5 in image
 
 Producer categories by treatment
 
@@ -258,7 +268,7 @@ producer_cat %>%
                y = percent_cover, 
                fill= category, 
                color= category)) + # set lines surrounding each color to match the fill colors 
-      geom_bar(stat="identity") + # stacked bars
+      geom_bar(stat="identity", position = "fill") + 
     
       labs(x = "Treatment", # labels
            y="Percent Cover",
@@ -270,10 +280,18 @@ producer_cat %>%
             axis.text = element_text(size = 14),
             legend.title = element_text(size = 16),
             legend.text = element_text(size = 14)) +
-    guides(color = "none")
+    guides(color = "none") +
+  scale_fill_manual(values = c("violetred2", '#FFA07A', "#6E8B3D", "gray45", "#4F94CD")) +
+  scale_color_manual(values = c("violetred2", '#FFA07A', "#6E8B3D", "gray45", "#4F94CD"))
 ```
 
 ![](tile_community_composition_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+``` r
+ggsave(here("Output", "treatment_percent_cover.jpeg"))
+```
+
+    ## Saving 7 x 5 in image
 
 ## Encrusting vs Turf
 
