@@ -197,11 +197,12 @@ rates_DW_long <- rates_PR_DWnorm %>%
 tile_measurements %>%
   filter(treatment %in% c("white", "black")) %>%
   ggplot(aes(x = treatment, y = dry_weight_g, color = treatment)) +
+  geom_boxplot() +
   geom_jitter() +
-  geom_boxplot(alpha = 0.4) +
   theme_bw() +
   labs(y = "Dry Algae Biomass (g)") +
-  guides(color = "none")
+  guides(color = "none") +
+  scale_color_manual(values = c("#635596","#E15554" ))
 ```
 
 ![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
@@ -224,17 +225,26 @@ tile_measurements %>%
 ``` r
 rates_PR_SAnorm %>% 
   ggplot(aes(x = treatment, y = values, color = treatment)) +
-  geom_jitter() +
   geom_boxplot(alpha = 0.4) +
-  facet_wrap(~PR ,scales = "free") + #*run_block, nrow = 3
+  geom_jitter() +
+  facet_wrap(~factor(PR, levels = c("net_photosynthesis", "gross_photosynthesis", "respiration")),
+             scales = "free",
+             labeller = as_labeller(c(gross_photosynthesis = "Gross Photosynthesis", 
+                                      net_photosynthesis = "Net Photosynthesis", 
+                                      respiration = "Respiration"))) +
   theme_bw() +
   labs(x = "Treatment", y = "umol.cm2.hr")+
   theme(strip.background = element_rect(fill = "white"),
         strip.text = element_text(face = "bold")) +
-  guides(color = "none")
+  guides(color = "none") +
+  scale_color_manual(values = c("#635596","#E15554" ))
 ```
 
 ![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+
+``` r
+ggsave(here("Output", "SA_normalized_rates.jpeg"), height = 6, width = 10)
+```
 
 #### Photosynthesis + Respiration Plot, Dry Weight Normalized
 
@@ -243,15 +253,24 @@ rates_PR_DWnorm %>%
   ggplot(aes(x = treatment, y = values, color = treatment)) +
   geom_jitter() +
   geom_boxplot(alpha = 0.4) +
-  facet_wrap(~PR, scales = "free") +
+  facet_wrap(~factor(PR, levels = c("net_photosynthesis", "gross_photosynthesis", "respiration")), 
+             scales = "free",
+             labeller = as_labeller(c(gross_photosynthesis = "Gross Photosynthesis", 
+                                      net_photosynthesis = "Net Photosynthesis", 
+                                      respiration = "Respiration"))) +
   theme_bw() +
   labs(x = "Treatment", y = "umol.g.hr")+
   theme(strip.background = element_rect(fill = "white"),
         strip.text = element_text(face = "bold")) +
-  guides(color = "none")
+  guides(color = "none") +
+  scale_color_manual(values = c("#635596","#E15554" ))
 ```
 
 ![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
+
+``` r
+ggsave(here("Output", "DW_normalized_rates.jpeg"), height = 6, width = 10)
+```
 
 ``` r
 rates_PR_SAnorm %>% 
@@ -310,7 +329,8 @@ rates_PR_SAnorm %>% filter(PR == "gross_photosynthesis") %>%
   geom_boxplot(alpha = 0.4) +
   theme_bw() +
   labs(y ="Gross Photosynthesis (umol.cm2.hr)") +
-  guides(color = "none")
+  guides(color = "none")  +
+  scale_color_manual(values = c("#635596","#E15554" ))
 ```
 
 ![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
@@ -324,7 +344,8 @@ rates_PR_DWnorm %>% filter(PR == "gross_photosynthesis") %>%
   geom_boxplot(alpha = 0.4) +
   theme_bw() +
   labs(y ="Gross Photosynthesis (umol.g.hr)") +
-  guides(color = "none")
+  guides(color = "none") +
+  scale_color_manual(values = c("#635596","#E15554" ))
 ```
 
 ![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
@@ -338,7 +359,8 @@ rates_PR_SAnorm %>% filter(PR == "net_photosynthesis") %>%
   geom_boxplot(alpha = 0.4) +
   theme_bw() +
   labs(y ="Net Photosynthesis (umol.cm2.hr)") +
-  guides(color = "none")
+  guides(color = "none") +
+  scale_color_manual(values = c("#635596","#E15554" ))
 ```
 
 ![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
@@ -352,7 +374,8 @@ rates_PR_DWnorm %>% filter(PR == "net_photosynthesis") %>%
   geom_boxplot(alpha = 0.4) +
   theme_bw() +
   labs(y ="Net Photosynthesis (umol.g.hr)") +
-  guides(color = "none")
+  guides(color = "none") +
+  scale_color_manual(values = c("#635596","#E15554" ))
 ```
 
 ![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
@@ -366,7 +389,8 @@ rates_PR_SAnorm %>% filter(PR == "respiration") %>%
   geom_boxplot(alpha = 0.4) +
   theme_bw() +
   labs(y ="Respiration (umol.cm2.hr)") +
-  guides(color = "none")
+  guides(color = "none") +
+  scale_color_manual(values = c("#635596","#E15554" ))
 ```
 
 ![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
@@ -380,7 +404,8 @@ rates_PR_DWnorm %>% filter(PR == "respiration") %>%
   geom_boxplot(alpha = 0.4) +
   theme_bw() +
   labs(y ="Respiration (umol.g.hr)") +
-  guides(color = "none")
+  guides(color = "none") +
+  scale_color_manual(values = c("#635596","#E15554" ))
 ```
 
 ![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
@@ -405,7 +430,7 @@ rates_SA_long %>%
   ggplot(aes(x = ratio, y = net_photosynthesis)) + 
   geom_point() + 
   geom_smooth(method = "lm") +
-  #facet_wrap(~treatment) + 
+  facet_wrap(~treatment) + 
   theme_bw() +
   labs(x = "Encrusting/Turf Ratio")
 ```
@@ -425,7 +450,7 @@ rates_DW_long %>%
   ggplot(aes(x = ratio, y = net_photosynthesis)) + 
   geom_point() + 
   geom_smooth(method = "lm") +
-  #facet_wrap(~treatment) + 
+  facet_wrap(~treatment) + 
   theme_bw() +
   labs(x = "Encrusting/Turf Ratio")
 ```
@@ -441,7 +466,7 @@ rates_SA_long %>%
   ggplot(aes(x = ratio, y = gross_photosynthesis)) + 
   geom_point() + 
   geom_smooth(method = "lm") +
-  #facet_wrap(~treatment) + 
+  facet_wrap(~treatment) + 
   theme_bw() +
   labs(x = "Encrusting/Turf Ratio")
 ```
@@ -457,7 +482,7 @@ rates_DW_long %>%
   ggplot(aes(x = ratio, y = gross_photosynthesis)) + 
   geom_point() + 
   geom_smooth(method = "lm") +
-  #facet_wrap(~treatment) + 
+  facet_wrap(~treatment) + 
   theme_bw() +
   labs(x = "Encrusting/Turf Ratio")
 ```
@@ -473,7 +498,7 @@ rates_SA_long %>%
   ggplot(aes(x = ratio, y = respiration)) + 
   geom_point() + 
   geom_smooth(method = "lm") +
-  #facet_wrap(~treatment) + 
+  facet_wrap(~treatment) + 
   theme_bw() +
   labs(x = "Encrusting/Turf Ratio")
 ```
@@ -489,7 +514,7 @@ rates_DW_long %>%
   ggplot(aes(x = ratio, y = respiration)) + 
   geom_point() + 
   geom_smooth(method = "lm") +
-  #facet_wrap(~treatment) + 
+  facet_wrap(~treatment) + 
   theme_bw() +
   labs(x = "Encrusting/Turf Ratio")
 ```
@@ -497,3 +522,37 @@ rates_DW_long %>%
     ## `geom_smooth()` using formula = 'y ~ x'
 
 ![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
+
+``` r
+rates_SA_long %>% 
+  ggplot(aes(x = Turf, y = net_photosynthesis)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~treatment) + 
+  theme_bw() +
+  labs(x = "Turf Percent Cover")
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-33-1.png)<!-- -->
+
+``` r
+rates_SA_long %>%
+  ggplot(aes(x = treatment, y = gross_photosynthesis/respiration)) + geom_boxplot() + geom_jitter()
+```
+
+![](respo_rates_analysis_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
+
+``` r
+rates_SA_long %>% 
+  mutate(gp_r = gross_photosynthesis/respiration) %>% 
+  group_by(treatment) %>% 
+  summarise(mean_gpr = mean(gp_r))
+```
+
+    ## # A tibble: 2 × 2
+    ##   treatment mean_gpr
+    ##   <chr>        <dbl>
+    ## 1 black         4.59
+    ## 2 white         4.92
